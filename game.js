@@ -1,52 +1,7 @@
-/** pg-roundtable — 圓桌協議 (外交／談判) */
-
-function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
-function mulberry32(a) {
-  return function() {
-    let t = (a += 0x6d2b79f5);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-function deep(o) { return JSON.parse(JSON.stringify(o)); }
-
-
-export function createGame({ seed = 1 } = {}) {
-  return { seed, turn: 0, score: 0, level: 1, meter: 0, resources: 10, flags: {}, log: ["圓桌協議：出價／同盟／施壓"], outcome: "playing", msg: "圓桌協議：出價／同盟／施壓" };
-}
-export function getLegalActions(s) {
-  if (s.outcome !== "playing") return [];
-  return ["bid","ally","sanction","speech"];
-}
-export function applyAction(state, action) {
-  const s = deep(state);
-  if (s.outcome !== "playing") return s;
-  const rnd = mulberry32(s.seed + s.turn * 19);
-  s.turn++;
-  
-  s.flags.inf = s.flags.inf ?? 0;
-  if (action === "bid") { s.resources -= 2; s.flags.inf += 3; s.msg = "密封出價"; }
-  else if (action === "ally") { s.flags.inf += 2; s.meter += 10; s.msg = "締結同盟"; }
-  else if (action === "sanction") { s.flags.inf += 1; s.resources += 1; s.msg = "經濟制裁對手"; }
-  else { s.flags.inf += 4; s.msg = "演說爭取中立"; }
-  s.meter = clamp(s.flags.inf * 5, 0, 100);
-  s.score = s.flags.inf * 10;
-  if (s.flags.inf >= 20) { s.level = 5; s.meter = 100; }
-
-  if (s.resources < 0) s.resources = 0;
-  if (s.outcome === "playing" && s.level >= 5 && s.meter >= 100) {
-    s.outcome = "won";
-    s.msg = "目標達成！";
-  }
-  if (s.outcome === "playing" && (s.resources <= 0 && s.meter < 20 && s.turn > 8)) {
-    s.outcome = "lost";
-    s.msg = "資源崩盤";
-  }
-  return s;
-}
-export function summarize(s) {
-  return { turn: s.turn, level: s.level, meter: s.meter, score: s.score, resources: s.resources, msg: s.msg, outcome: s.outcome, flags: s.flags };
-}
-export function getOutcome(s) { return s.outcome; }
-
+function clone(v){return structuredClone(v)}
+function rand(n){let t=(n+0x6d2b79f5)|0;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296}
+export function createGame({seed=1,chapter=1}={}){return {seed:Number(seed)||1,turn:0,score:0,outcome:"playing",message:"準備就緒",chapter,round:1,influence:10,bid:0,treaties:[],factions:[{n:"北盟",v:12},{n:"海邦",v:10},{n:"山國",v:9},{n:"沙庭",v:11}]}}
+export function getLegalActions(s){return s.outcome==="playing"?["bid", "treaty", "pressure", "resolve"]:[]}
+export function applyAction(state,action){const s=clone(state);if(!getLegalActions(s).includes(action))return s;s.message={"bid": "密封出價", "treaty": "提出條約", "pressure": "施壓", "resolve": "同步揭曉"}[action];if(action==="bid"&&s.influence>0){s.bid++;s.influence--}else if(action==="treaty"){s.treaties.push("第"+s.round+"輪互助約");s.influence+=2}else if(action==="pressure"&&s.influence>=2){s.influence-=2;s.factions[1+s.round%3].v-=2}else if(action==="resolve"){const ai=s.factions.slice(1).map((f,i)=>1+Math.floor(rand(s.seed+s.round+i)*5));s.factions[0].v+=s.bid-Math.max(...ai)+3;s.factions.slice(1).forEach((f,i)=>f.v+=ai[i]);s.bid=0;s.round++;s.influence+=3}s.score=s.factions[0].v;s.turn++;if(s.round>8)s.outcome=s.factions[0].v===Math.max(...s.factions.map(f=>f.v))?"won":"lost";return s}
+export function summarize(s){return {turn:s.turn,score:s.score,outcome:s.outcome,message:s.message}}
+export function getOutcome(s){return s.outcome}
