@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "rev": "df808e1",
+  "files": [
+    "app.js",
+    "assets/audio/action.ogg",
+    "assets/audio/click.ogg",
+    "assets/audio/coin.ogg",
+    "assets/audio/error.ogg",
+    "assets/audio/hit.ogg",
+    "assets/audio/music.ogg",
+    "assets/audio/ok.ogg",
+    "assets/audio/soft.ogg",
+    "assets/audio/win.ogg",
+    "assets/images/die.png",
+    "assets/images/emblem.png",
+    "assets/images/hero.png",
+    "assets/images/rival.png",
+    "assets/licenses/art-license.txt",
+    "assets/licenses/blippy-bits.txt",
+    "assets/licenses/kenney-toon.txt",
+    "assets/licenses/music-license.txt",
+    "assets/licenses/sfx-license.txt",
+    "audio.js",
+    "game.js",
+    "index.html",
+    "persist.js",
+    "scripts/gen-thumbnail.mjs",
+    "styles.css"
+  ]
+}
